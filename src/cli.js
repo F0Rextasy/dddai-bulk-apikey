@@ -44,6 +44,9 @@ const ROOT = IS_SRC ? path.resolve(__dirname, '..') : __dirname;
 const KEYS_FILE = path.join(ROOT, 'keys.txt');
 const ACCOUNTS_FILE = path.join(ROOT, 'accounts.json');
 const OUT_DIR = path.join(ROOT, 'out');
+const DEAD_FILE = path.join(ROOT, 'keys-dead.txt');
+/** Dead keys from the last verify run (one `key<TAB># reason` per line). */
+const writeDead = (dead) => fs.writeFileSync(DEAD_FILE, dead.map((d) => `${d.key}\t# ${d.why}`).join('\n') + (dead.length ? '\n' : ''));
 
 // --------------------------------------------------------------- provider
 const BASE = 'https://api.dddai.dev';
@@ -474,11 +477,14 @@ function verifyOnly() {
   const keys = readKeys();
   if (!keys.length) return log(`no keys in ${KEYS_FILE}`);
   let live = 0;
+  const dead = [];
   for (const key of keys) {
     const p = prove(key);
     if (p.live) live++;
+    else dead.push({ key, why: 'prove DEAD' });
     log(`${key.slice(0, 10)}… models=${p.models.status}(${p.models.count}) chat[${p.chat.model}]=${p.chat.status} ${JSON.stringify(String(p.chat.content || '').slice(0, 20))} ${p.live ? 'LIVE' : 'DEAD'}`);
   }
+  writeDead(dead);
   log(`live: ${live}/${keys.length}`);
 }
 
