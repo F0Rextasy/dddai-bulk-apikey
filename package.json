@@ -1,0 +1,34 @@
+{
+  "name": "dddai-bulk-apikey",
+  "version": "1.0.0",
+  "description": "Bulk-create DDD AI accounts with API keys — OpenAI-compatible inference + 9Router connector.",
+  "license": "MIT",
+  "type": "commonjs",
+  "bin": {
+    "dddai-bulk-apikey": "src/cli.js",
+    "dddai-bulk-apikey-launcher": "src/launcher.js"
+  },
+  "main": "src/cli.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node src/launcher.js",
+    "mint": "node src/cli.js",
+    "9router": "node src/connect-9router.js",
+    "omniroute": "node src/connect-omniroute.js"
+  },
+  "keywords": [
+    "api-key",
+    "bulk",
+    "register",
+    "launcher",
+    "dddai",
+    "apikey"
+  ],
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ]
+}
