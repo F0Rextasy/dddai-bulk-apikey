@@ -92,6 +92,7 @@ const COUNT = Math.max(1, parseInt(arg('count', '1'), 10) || 1);
 const MODEL = arg('model', process.env.DDDAI_MODEL || '');
 const TRIES = Math.max(1, parseInt(arg('exits', '6'), 10) || 6);
 const GROUP = arg('group', DEFAULT_GROUP);
+const AUTO = has('auto');
 const VERIFY_ONLY = has('verify-only');
 const SCREEN = has('screen');
 const CONNECT = has('connect-9router');
@@ -258,16 +259,17 @@ async function waitForCode(mb, { timeoutMs = CODE_WAIT_MS, pre = [] } = {}) {
   const seen = new Set(pre);
   while (Date.now() < deadline) {
     const msgs = await inbox(mb);
-    // brand-tagged first, then anything new that carries a code
+    // Brand-gated only. The old second pass read *any* fresh mail, and its
+    // `CODE_RE` matched a stranger's "Your CardAce Account Verify Code: 4474" in
+    // the shared box; the register then answered "Verification code is incorrect
+    // or has expired" (measured 2026-10-24). A foreign mail is never read now.
     for (const pass of [1, 2]) {
       for (const m of msgs) {
         if (seen.has(m.id)) continue;
         const hay = `${m.from || ''} ${m.subject || ''}`;
-        // Only a message that *reads* like a verification mail may be read for a
-        // code — a shared inbox is mostly marketing, and a truncated body once
-        // handed back a number out of a stylesheet.
+        // Only a mail that names this panel (sender or subject) may supply a code.
         const codeish = BRAND.test(hay) || SENDER.test(String(m.from || ''));
-        if (pass === 1 && !codeish) continue;
+        if (!codeish) continue;
         let raw = m.text;
         if (raw === undefined && mb.kind === 'emailnator') {
           const full = json_https(`/api/message/${encodeURIComponent(m.id)}`);
